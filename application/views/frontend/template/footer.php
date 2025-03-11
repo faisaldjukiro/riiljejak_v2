@@ -2,21 +2,30 @@
     <div class="container">
         <div class="stats-section">
             <?php
-            date_default_timezone_set('Asia/Makassar');
-            $waktu_sekarang = date('Y-m-d H:i:s');
+                date_default_timezone_set('Asia/Makassar');
+                $waktu_sekarang = date('Y-m-d H:i:s');
 
-            $hari_ini_query = $this->db->query("SELECT COUNT(*) AS visits_today
-            FROM visits
-            WHERE DATE(visit_time) = DATE('$waktu_sekarang');");
-            $hari_ini = ($hari_ini_query->num_rows() > 0) ? $hari_ini_query->row()->visits_today : 0;
-            $minggu_ini_query = $this->db->query("SELECT COUNT(*) AS visits_this_week
-            FROM visits
-            WHERE YEARWEEK(visit_time, 1) = YEARWEEK('$waktu_sekarang', 1);");
-            $minggu_ini = ($minggu_ini_query->num_rows() > 0) ? $minggu_ini_query->row()->visits_this_week : 0;
-            $total_kunjungan_query = $this->db->query("SELECT COUNT(*) AS total_visits
-            FROM visits;");
-            $total_kunjungan = ($total_kunjungan_query->num_rows() > 0) ? $total_kunjungan_query->row()->total_visits : 0;
-            ?>
+                $hari_ini_query = $this->db->query("SELECT COUNT(*) AS visits_today FROM (
+                    SELECT DISTINCT ip_address, DATE_FORMAT(visit_time, '%Y-%m-%d %H:%i:%s') as visit_time_formatted 
+                    FROM visits 
+                    WHERE DATE(visit_time) = DATE('$waktu_sekarang')
+                ) AS unique_visits;");
+                $hari_ini = ($hari_ini_query->num_rows() > 0) ? $hari_ini_query->row()->visits_today : 0;
+
+                $minggu_ini_query = $this->db->query("SELECT COUNT(*) AS visits_this_week FROM (
+                    SELECT DISTINCT ip_address, DATE_FORMAT(visit_time, '%Y-%m-%d %H:%i:%s') as visit_time_formatted 
+                    FROM visits 
+                    WHERE YEARWEEK(visit_time, 1) = YEARWEEK('$waktu_sekarang', 1)
+                ) AS unique_visits;");
+                $minggu_ini = ($minggu_ini_query->num_rows() > 0) ? $minggu_ini_query->row()->visits_this_week : 0;
+
+                $total_kunjungan_query = $this->db->query("SELECT COUNT(*) AS total_visits FROM (
+                    SELECT DISTINCT ip_address, DATE_FORMAT(visit_time, '%Y-%m-%d %H:%i:%s') as visit_time_formatted 
+                    FROM visits
+                ) AS unique_visits;");
+                $total_kunjungan = ($total_kunjungan_query->num_rows() > 0) ? $total_kunjungan_query->row()->total_visits : 0;
+                ?>
+
 
             <div class="stat-box">
                 <span class="stat-value"><?= $hari_ini ?></span>
